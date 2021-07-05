@@ -16,43 +16,25 @@ import java.util.*;
  * of one or more CriminalProfile.Offence tags, the date of conviction, and a
  * description of the conviction. Convictions are immutable.
  */
-@Entity
+@Embeddable
+@Access(AccessType.FIELD)
 public class Conviction {
 
-    @Id
-    @GeneratedValue
-    private Long id;
-
-    @ElementCollection
-    private Set<Offence> offenceTags;
+    private Offence offence;
 
     private LocalDate date;
 
     private String description;
 
-    public Conviction() {
-        this(null, null);
-    }
+    public Conviction() {}
 
     @JsonCreator
     public Conviction(@JsonProperty("date") LocalDate convictionDate,
                       @JsonProperty("description") String description,
-                      @JsonProperty("offenceTags") Offence... offenceTags) {
+                      @JsonProperty("offence") Offence offence) {
         date = convictionDate;
         this.description = description;
-        this.offenceTags = new HashSet<>(Arrays.asList(offenceTags));
-    }
-
-    public Set<Offence> getOffenceTags() {
-        return Collections.unmodifiableSet(offenceTags);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
+        this.offence = offence;
     }
 
     @JsonSerialize(using = LocalDateSerializer.class)
@@ -65,16 +47,29 @@ public class Conviction {
         return description;
     }
 
+    public Offence getOffence() {
+        return offence;
+    }
+
+    @Override
+    public String toString() {
+        return "Conviction{" +
+                "offence=" + offence +
+                ", date=" + date +
+                ", description='" + description + '\'' +
+                '}';
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Conviction that = (Conviction) o;
-        return Objects.equals(offenceTags, that.offenceTags) && Objects.equals(date, that.date) && Objects.equals(description, that.description);
+        return Objects.equals(offence, that.offence) && Objects.equals(date, that.date) && Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(offenceTags, date, description);
+        return Objects.hash(offence, date, description);
     }
 }

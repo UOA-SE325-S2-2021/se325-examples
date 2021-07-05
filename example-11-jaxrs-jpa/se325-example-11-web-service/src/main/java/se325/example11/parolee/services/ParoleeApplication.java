@@ -15,8 +15,9 @@ public class ParoleeApplication extends Application {
     private Set<Class<?>> classes = new HashSet<>();
 
     public ParoleeApplication() {
-        singletons.add(PersistenceManager.instance());
-        classes.add(ParoleeResource.class);
+//        singletons.add(PersistenceManager.instance());
+//        classes.add(ParoleeResource.class);
+        singletons.add(new ParoleeResource());
     }
 
     @Override

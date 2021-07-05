@@ -1,5 +1,8 @@
 package se325.example11.parolee.domain;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -20,46 +23,53 @@ public class Parolee {
 
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
+
     private String lastName;
     private String firstName;
     private Gender gender;
     private LocalDate dateOfBirth;
     private Address homeAddress;
-    @OneToOne(cascade = CascadeType.PERSIST)
-    private Curfew curfew;
-    private CriminalProfile criminalProfile;
-    @OneToMany
-    private Set<Parolee> dissassociates;
+
     @ElementCollection
-    private List<Movement> movements;
+    private List<Conviction> convictions = new ArrayList<>();
+
+    @ManyToMany
+    private Set<Parolee> disassociates = new HashSet<>();
+
+    @ElementCollection
+    private Set<Movement> movements = new HashSet<>();
 
     public Parolee() {
     }
 
-    public Parolee(long id,
+    public Parolee(Long id,
                    String lastName,
                    String firstName,
                    Gender gender,
                    LocalDate dateOfBirth,
-                   Address address,
-                   Curfew curfew) {
+                   Address homeAddress) {
         this.id = id;
         this.lastName = lastName;
         this.firstName = firstName;
         this.gender = gender;
         this.dateOfBirth = dateOfBirth;
-        homeAddress = address;
-        this.curfew = curfew;
-        dissassociates = new HashSet<>();
-        movements = new ArrayList<>();
+        this.homeAddress = homeAddress;
     }
 
-    public long getId() {
+    public Parolee(String lastName,
+                   String firstName,
+                   Gender gender,
+                   LocalDate dateOfBirth,
+                   Address homeAddress) {
+        this(null, lastName, firstName, gender, dateOfBirth, homeAddress);
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -103,59 +113,41 @@ public class Parolee {
         this.homeAddress = homeAddress;
     }
 
-    public Curfew getCurfew() {
-        return curfew;
-    }
-
-    public void setCurfew(Curfew curfew) {
-        this.curfew = curfew;
-    }
-
-    public CriminalProfile getCriminalProfile() {
-        return criminalProfile;
-    }
-
-    public void setCriminalProfile(CriminalProfile profile) {
-        criminalProfile = profile;
-    }
-
     public void addMovement(Movement movement) {
-        // Store the new movement.
-        movements.add(movement);
-
-        // Ensure that movements are sorted in descending order (i.e. that the
-        // most recent movement appears first.
-        Collections.sort(movements, Collections.reverseOrder());
+        this.movements.add(movement);
     }
 
+    /**
+     * Gets the movements, in a sorted order. Sorted by timestamp, latest first.
+     */
     public List<Movement> getMovements() {
-        // Returns the Parolee's movements in a read-only collection.
+        List<Movement> movements = new ArrayList<>(this.movements);
+        movements.sort(Comparator.reverseOrder());
         return Collections.unmodifiableList(movements);
     }
 
     public Movement getLastKnownPosition() {
-        Movement movement = null;
-
-        if (!movements.isEmpty()) {
-            movement = movements.get(0);
+        List<Movement> movements = getMovements();
+        if (movements.isEmpty()) {
+            return null;
         }
-        return movement;
+        return movements.get(0);
     }
 
-    public void addDissassociate(Parolee parolee) {
-        dissassociates.add(parolee);
+    public Set<Parolee> getDisassociates() {
+        return this.disassociates;
     }
 
-    public void removeDissassociate(Parolee parolee) {
-        dissassociates.remove(parolee);
+    public void setDisassociates(Set<Parolee> disassociates) {
+        this.disassociates = disassociates;
     }
 
-    public Set<Parolee> getDissassociates() {
-        return Collections.unmodifiableSet(dissassociates);
+    public List<Conviction> getConvictions() {
+        return convictions;
     }
 
-    public void updateDissassociates(Set<Parolee> dissassociates) {
-        this.dissassociates = dissassociates;
+    public void setConvictions(List<Conviction> convictions) {
+        this.convictions = convictions;
     }
 
     @Override
@@ -189,55 +181,40 @@ public class Parolee {
             buffer.append(homeAddress);
         }
 
-        if (curfew != null) {
-            buffer.append("\n  Curfew from ");
-            buffer.append(timeFormatter.format(curfew.getStartTime()));
-            buffer.append(" to ");
-            buffer.append(timeFormatter.format(curfew.getEndTime()));
-            buffer.append(" @ ");
-
-            if (homeAddress != null && homeAddress.equals(curfew.getConfinementAddress())) {
-                buffer.append("home");
-            } else {
-                buffer.append(curfew.getConfinementAddress());
-            }
-        } else {
-            buffer.append("No curfew conditions");
-        }
-
         buffer.append("\n  ");
-        if (criminalProfile != null) {
-            buffer.append(criminalProfile);
-        } else {
+        if (convictions.isEmpty()) {
             buffer.append("No criminal profile");
+
+        } else {
+            buffer.append(convictions.size() + " convictions");
         }
 
         buffer.append("\n");
         buffer.append("  Dissassociates: ");
-        if (dissassociates.isEmpty()) {
+        if (disassociates.isEmpty()) {
             buffer.append("none");
         } else {
-            for (Parolee dissassociate : dissassociates) {
+            for (Parolee disassociate : disassociates) {
                 buffer.append("[");
-                buffer.append(dissassociate.id);
+                buffer.append(disassociate.id);
                 buffer.append("]");
                 buffer.append(" ");
-                if (dissassociate.lastName != null) {
-                    buffer.append(dissassociate.lastName);
+                if (disassociate.lastName != null) {
+                    buffer.append(disassociate.lastName);
                     buffer.append(", ");
                 }
-                if (dissassociate.firstName != null) {
-                    buffer.append(dissassociate.firstName);
+                if (disassociate.firstName != null) {
+                    buffer.append(disassociate.firstName);
                 }
                 buffer.append(";");
             }
             buffer.deleteCharAt(buffer.length() - 1);
         }
 
-        if (!movements.isEmpty()) {
+        Movement lastKnownLocation = getLastKnownPosition();
+        if (lastKnownLocation != null) {
             buffer.append("\n  Last known location: ");
-            Movement lastMovement = movements.get(0);
-            buffer.append(lastMovement);
+            buffer.append(lastKnownLocation);
         }
 
         buffer.append(" }");

@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import se325.example11.parolee.jackson.LocalDateTimeDeserializer;
 import se325.example11.parolee.jackson.LocalDateTimeSerializer;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Embeddable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,10 +19,10 @@ import java.util.Objects;
  * timestamp and a latitude/longitude position. Movement objects are immutable.
  */
 @Embeddable
+@Access(AccessType.FIELD)
 public class Movement implements Comparable<Movement> {
 
     private LocalDateTime timestamp;
-
     private GeoPosition geoPosition;
 
     protected Movement() {
@@ -32,12 +34,12 @@ public class Movement implements Comparable<Movement> {
      * have no setters).
      *
      * @param timestamp the time of the movement
-     * @param position  the position of the movement
+     * @param geoPosition  the position of the movement
      */
     @JsonCreator
-    public Movement(@JsonProperty("timestamp") LocalDateTime timestamp, @JsonProperty("position") GeoPosition position) {
+    public Movement(@JsonProperty("timestamp") LocalDateTime timestamp, @JsonProperty("geoPosition") GeoPosition geoPosition) {
         this.timestamp = timestamp;
-        geoPosition = position;
+        this.geoPosition = geoPosition;
     }
 
     @JsonSerialize(using = LocalDateTimeSerializer.class)
@@ -46,16 +48,8 @@ public class Movement implements Comparable<Movement> {
         return timestamp;
     }
 
-    public void setTimestamp(LocalDateTime timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public GeoPosition getGeoPosition() {
         return geoPosition;
-    }
-
-    public void setGeoPosition(GeoPosition geoPosition) {
-        this.geoPosition = geoPosition;
     }
 
     @Override
