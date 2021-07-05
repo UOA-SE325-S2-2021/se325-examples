@@ -36,7 +36,7 @@ public class ParoleeDB {
 
     public synchronized List<Parolee> getParolees(int start, int len) {
         List<Parolee> all = getParolees();
-        return all.subList(start, len + start);
+        return all.subList(start, Math.min(len + start, all.size()));
     }
 
     public synchronized void reset() {

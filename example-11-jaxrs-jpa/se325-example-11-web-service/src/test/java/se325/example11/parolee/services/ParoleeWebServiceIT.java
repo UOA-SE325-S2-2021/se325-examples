@@ -3,20 +3,14 @@ package se325.example11.parolee.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -34,7 +28,7 @@ import static org.junit.Assert.*;
 public class ParoleeWebServiceIT {
     private static final String WEB_SERVICE_URI = "http://localhost:10000/services/parolees";
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ParoleeWebServiceIT.class);
+//    private static final Logger LOGGER = LoggerFactory.getLogger(ParoleeWebServiceIT.class);
 
     private static Client CLIENT;
 
@@ -184,10 +178,6 @@ public class ParoleeWebServiceIT {
      */
     @Test
     public void updateDisassociates() {
-        // Query Parolee Catherine from the Web service.
-//        ParoleeDTO catherine = CLIENT
-//                .target(WEB_SERVICE_URI + "/2").request()
-//                .accept(MediaType.APPLICATION_JSON).get(ParoleeDTO.class);
 
         // Query Catherines's disassociates.
         List<ParoleeDTO> disassociates = CLIENT
@@ -265,167 +255,98 @@ public class ParoleeWebServiceIT {
         }
     }
 
-//    /**
-//     * Tests that the Web service can handle requests to query a particular
-//     * Parolee.
-//     */
-//    @Test
-//    public void queryParolee() {
-//        Parolee parolee = CLIENT
-//                .target(WEB_SERVICE_URI + "/1").request()
-//                .accept(MediaType.APPLICATION_JSON).get(Parolee.class);
-//
-//        assertEquals(1, parolee.getId());
-//        assertEquals("Sinnen", parolee.getLastName());
-//    }
-//
-//    /**
-//     * Similar to queryParolee(), but this method retrieves the Parolee using
-//     * via a Response object. Because a Response object is used, headers and
-//     * other HTTP response message data can be examined.
-//     */
-//    @Test
-//    public void queryParoleeWithResponse() {
-//        Response response = CLIENT
-//                .target(WEB_SERVICE_URI + "/1").request().get();
-//        Parolee parolee = response.readEntity(Parolee.class);
-//
-//        // Get the headers and print them out.
-//        MultivaluedMap<String, Object> headers = response.getHeaders();
-//        LOGGER.info("Dumping HTTP response message headers ...");
-//        for (String key : headers.keySet()) {
-//            LOGGER.info(key + ": " + headers.getFirst(key));
-//        }
-//        response.close();
-//    }
+    /**
+     * Tests that the Web service can handle requests to query a particular Parolee.
+     */
+    @Test
+    public void queryParolee() {
+        ParoleeDTO parolee = CLIENT
+                .target(WEB_SERVICE_URI + "/1").request()
+                .accept(MediaType.APPLICATION_JSON).get(ParoleeDTO.class);
 
-//    /**
-//     * Tests that the Web service processes requests for all Parolees.
-//     */
-//    @Test
-//    public void queryAllParolees() {
-//        List<Parolee> parolees = CLIENT
-//                .target(WEB_SERVICE_URI + "?start=1&size=3").request()
-//                .accept(MediaType.APPLICATION_JSON)
-//                .get(new GenericType<List<Parolee>>() {
-//                });
-//        assertEquals(3, parolees.size());
-//    }
-//
-//    /**
-//     * Tests that the Web service processes requests for Parolees using header
-//     * links for HATEOAS.
-//     */
-//    @Test
-//    public void queryAllParoleesUsingHATEOAS() {
-//        // Make a request for Parolees (note that the Web service has default
-//        // values of 1 for the query parameters start and size.
-//        Response response = CLIENT
-//                .target(WEB_SERVICE_URI).request().get();
-//
-//        // Extract links and entity data from the response.
-//        Link previous = response.getLink("prev");
-//        Link next = response.getLink("next");
-//        List<Parolee> parolees = response.readEntity(new GenericType<List<Parolee>>() {
-//        });
-//        response.close();
-//
-//        // The Web service should respond with a list containing only the
-//        // first Parolee.
-//        assertEquals(1, parolees.size());
-//        assertEquals(1, parolees.get(0).getId());
-//
-//        // Having requested the only the first parolee (by default), the Web
-//        // service should respond with a Next link, but not a previous Link.
-//        assertNull(previous);
-//        assertNotNull(next);
-//
-//        // Invoke next link and extract response data.
-//        response = CLIENT
-//                .target(next).request().get();
-//        previous = response.getLink("prev");
-//        next = response.getLink("next");
-//        parolees = response.readEntity(new GenericType<List<Parolee>>() {
-//        });
-//        response.close();
-//
-//        // The second Parolee should be returned along with Previous and Next
-//        // links to the adjacent Parolees.
-//        assertEquals(1, parolees.size());
-//        assertEquals(2, parolees.get(0).getId());
-//        assertEquals("<" + WEB_SERVICE_URI + "?start=1&size=1>; rel=\"prev\"", previous.toString());
-//        assertNotNull("<" + WEB_SERVICE_URI + "?start=1&size=1>; rel=\"prev\"", next.toString());
-//    }
-//
-//    /**
-//     * Tests that the Web service can process requests for a particular
-//     * Parolee's movements.
-//     */
-//    @Test
-//    public void queryParoleeMovements() {
-//        List<Movement> movementsForOliver = CLIENT
-//                .target(WEB_SERVICE_URI + "/1/movements")
-//                .request().accept(MediaType.APPLICATION_JSON)
-//                .get(new GenericType<List<Movement>>() {
-//                });
-//
-//        // Oliver has 3 recorded movements.
-//        assertEquals(3, movementsForOliver.size());
-//    }
-//
-//    /**
-//     * Tests that the Web service can accept subscriptions for parole violations, and that subscribers are notified
-//     * when such a violation occurs.
-//     */
-//    @Test
-//    public void testSubscribeToParoleeViolation() throws InterruptedException, ExecutionException, TimeoutException {
-//
-//        // Create an async request to the subscription service and set it going
-//        Future<Response> future = CLIENT.target(WEB_SERVICE_URI + "/subscribeParoleViolations")
-//                .request().async().get();
-//
-//        // Create and start the thread that will POST the violating movement after 1s.
-//        Thread movementThread = createParoleeMovementThread();
-//        movementThread.start();
-//
-//        // Wait for the published violation for five seconds max. If none received, fail.
-//        Response response = future.get(5, TimeUnit.SECONDS);
-//
-//        // Check details are correct.
-//        assertEquals(200, response.getStatus());
-//        ParoleViolation violation = response.readEntity(ParoleViolation.class);
-//        assertEquals(1L, violation.getParoleeId());
-//        assertEquals(-36.870618, violation.getLocation().getLatitude(), 1e-10);
-//        assertEquals(174.772172, violation.getLocation().getLongitude(), 1e-10);
-//    }
-//
-//    // Create a thread that will send a parolee movement to the server after one second.
-//    private Thread createParoleeMovementThread() {
-//        return new Thread(() -> {
-//
-//            try {
-//
-//                // Wait for a bit, to give the subscription request time to get through.
-//                Thread.sleep(1000);
-//
-//                // Create offending movement
-//                long paroleeId = 1;
-//                GeoPosition movementPosition = new GeoPosition(-36.870618, 174.772172);
-//                LocalDate movementDate = LocalDate.now();
-//                LocalTime movementTime = LocalTime.of(22, 00);
-//                LocalDateTime movementTimestamp = LocalDateTime.of(movementDate, movementTime);
-//                Movement movement = new Movement(movementTimestamp, movementPosition);
-//
-//                Client paroleeMovementClient = ClientBuilder.newClient();
-//                paroleeMovementClient.target(WEB_SERVICE_URI + "/1/movements")
-//                        .request().post(Entity.json(movement));
-//
-//                paroleeMovementClient.close();
-//
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//            }
-//
-//        });
-//    }
+        assertEquals(1, (long) parolee.getId());
+        assertEquals("Sinnen", parolee.getLastName());
+    }
+
+    /**
+     * Tests that the Web service processes requests for all Parolees.
+     */
+    @Test
+    public void queryAllParolees() {
+        List<ParoleeDTO> parolees = CLIENT
+                .target(WEB_SERVICE_URI).request()
+                .accept(MediaType.APPLICATION_JSON)
+                .get(new GenericType<>() {
+                });
+        assertEquals(3, parolees.size());
+        assertEquals(1, (long) parolees.get(0).getId());
+        assertEquals(2, (long) parolees.get(1).getId());
+        assertEquals(3, (long) parolees.get(2).getId());
+    }
+
+    /**
+     * Tests that the Web service processes requests for Parolees using header
+     * links for HATEOAS.
+     */
+    @Test
+    public void queryAllParoleesUsingHATEOAS() {
+        // Make a request for Parolees, page = 0 and page size = 2. Should return the first two
+        // parolees, along with a "next" header and no "prev" header.
+        Response response = CLIENT
+                .target(WEB_SERVICE_URI + "?page=0&size=2").request().get();
+
+        // Extract links and entity data from the response.
+        Link previous = response.getLink("prev");
+        Link next = response.getLink("next");
+        List<ParoleeDTO> parolees = response.readEntity(new GenericType<>() {
+        });
+        response.close();
+
+        // The Web service should respond with a list containing only the first two Parolees.
+        assertEquals(2, parolees.size());
+        assertEquals(1, (long) parolees.get(0).getId());
+        assertEquals(2, (long) parolees.get(1).getId());
+
+        // Having requested the only the first page, the Web service should respond with a Next link,
+        // but not a previous Link.
+        assertNull(previous);
+        assertNotNull(next);
+        assertEquals("<" + WEB_SERVICE_URI + "?page=1&size=2>; rel=\"next\"", next.toString());
+
+        // Invoke next link and extract response data.
+        response = CLIENT.target(next).request().get();
+        previous = response.getLink("prev");
+        next = response.getLink("next");
+        parolees = response.readEntity(new GenericType<>() {
+        });
+        response.close();
+
+        // The third and final Parolee should be returned. The "prev" link should be a link for page 0, while the
+        // "next" link should be null as there are no more parolees.
+        assertEquals(1, parolees.size());
+        assertEquals(3, (long) parolees.get(0).getId());
+        assertNotNull(previous);
+        assertEquals("<" + WEB_SERVICE_URI + "?page=0&size=2>; rel=\"prev\"", previous.toString());
+        assertNull(next);
+    }
+
+    /**
+     * Tests that the Web service can process requests for a particular
+     * Parolee's movements.
+     */
+    @Test
+    public void queryParoleeMovements() {
+        List<Movement> movementsForOliver = CLIENT
+                .target(WEB_SERVICE_URI + "/1/movements")
+                .request().accept(MediaType.APPLICATION_JSON)
+                .get(new GenericType<>() {
+                });
+
+        // Oliver has 3 recorded movements.
+        assertEquals(3, movementsForOliver.size());
+
+        // Make sure they're in timestamp order, latest first.
+        assertTrue(movementsForOliver.get(0).getTimestamp().isAfter(movementsForOliver.get(1).getTimestamp()));
+        assertTrue(movementsForOliver.get(1).getTimestamp().isAfter(movementsForOliver.get(2).getTimestamp()));
+    }
 }

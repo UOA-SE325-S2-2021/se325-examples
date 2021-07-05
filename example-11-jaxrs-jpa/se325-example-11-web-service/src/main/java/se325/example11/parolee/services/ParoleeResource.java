@@ -196,7 +196,7 @@ public class ParoleeResource {
                 // There are successive parolees - create a next link.
                 next = Link.fromUri(uri + "?page={page}&size={size}")
                         .rel("next")
-                        .build(pageNum - 1, pageSize);
+                        .build(pageNum + 1, pageSize);
             }
         }
 
