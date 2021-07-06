@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd"
+             version="2.1">
+
+    <!-- The JPA specification can be accessed at:
+         http://download.oracle.com/otndocs/jcp/persistence-2_1-fr-eval-spec/index.html
+
+         Chapter 8 describes Persistent Unit configuration. Section 8.2.1.9 details
+         the JPA properties and their permitted values.
+
+         Hibernate is a JPA provider (JPA implementation). Hibernate also has properties
+         that can be specified. The following document lists the properties (in chapter
+         3 (sections 3.3 and 3.4):
+
+         https://docs.jboss.org/hibernate/stable/core.old/reference/en/html
+
+         Configuration of the embedded H2 database is covered on the H2 website:
+
+         www.h2database.com -->
+
+    <persistence-unit name="se325.parolee">
+        <class>se325.example12.parolee.domain.Parolee</class>
+        <properties>
+            <!--  Configure the data source. In this case the embedded H2 database
+                  is used. -->
+            <property name="javax.persistence.jdbc.driver" value="org.h2.Driver"/>
+            <property name="javax.persistence.jdbc.url" value="jdbc:h2:~/test;mv_store=false"/>
+            <property name="javax.persistence.jdbc.user" value="sa"/>
+            <property name="javax.persistence.jdbc.password" value="sa"/>
+
+            <!-- Configure JPA to drop and re-create the SQL schema (tables) in the
+                 database at start-up time. This is useful for automated testing,
+                 because a clean database is used on each test run. -->
+            <property name="javax.persistence.schema-generation.database.action"
+                      value="drop-and-create"/>
+
+            <!-- Configure Hibernate to print out all SQL code that is generated and
+                executed. format_sql causes the output to be formatted and more easily
+                read. use_sql_comments generates comments to explain why the SQL is
+                generated. When these properties are set to true, the output occurs
+                regardless of any log4j output-level settings. -->
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.use_sql_comments" value="false"/>
+        </properties>
+    </persistence-unit>
+
+</persistence>
